@@ -9,8 +9,9 @@
 import UIKit
 
 protocol LoginBusinessLogic {
-    func requestLoginOnExternal(request: Login.Data.Request)
+    func requestLoginOnExternal(request: LoginModel.Data.Request)
     func requestToken()
+    func checkIfLogged()
 }
 
 class LoginInteractor: LoginBusinessLogic {
@@ -20,29 +21,23 @@ class LoginInteractor: LoginBusinessLogic {
     
     // MARK: Do something
     
-    func requestLoginOnExternal(request: Login.Data.Request) {
+    func requestLoginOnExternal(request: LoginModel.Data.Request) {
         worker.openLoginAuthorizeOnSafari()
     }
     
     func requestToken() {
         worker.requestTokenFromServer { success, error in
             self.isLoggedIn = success
-            let response = Login.Data.Response(success: success, error: error)
+            let response = LoginModel.Data.Response(success: success, error: error)
             self.presenter?.presentHomeView(response: response)
         }
     }
     
     func checkIfLogged() {
-        if let _ = K.Auth.accessToken, let _ = K.Auth.refreshToken {
+        if let _ = Constant.Auth.accessToken, let _ = Constant.Auth.refreshToken {
             self.isLoggedIn = true
-            let response = Login.Data.Response(success: true, error: nil)
+            let response = LoginModel.Data.Response(success: true, error: nil)
             presenter?.presentHomeView(response: response)
-        } else {
-            worker.hasLoggedIn { success, error in
-                self.isLoggedIn = success
-                let response = Login.Data.Response(success: success, error: error)
-                self.presenter?.presentHomeView(response: response)
-            }
         }
     }
 }

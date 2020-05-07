@@ -1,35 +1,59 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="15702" systemVersion="19D76" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="Album" representedClassName="AlbumModel" syncable="YES" codeGenerationType="class">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="16119" systemVersion="19E287" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Album" representedClassName="Album" syncable="YES" codeGenerationType="class">
         <attribute name="id" optional="YES" attributeType="String"/>
-        <attribute name="name" optional="YES" attributeType="String"/>
-    </entity>
-    <entity name="Artist" representedClassName="ArtistModel" syncable="YES" codeGenerationType="class">
-        <attribute name="id" optional="YES" attributeType="String"/>
-        <attribute name="name" optional="YES" attributeType="String"/>
-    </entity>
-    <entity name="Image" representedClassName="ImageModel" syncable="YES" codeGenerationType="class">
-        <attribute name="height" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="image" optional="YES" attributeType="Binary"/>
-        <attribute name="url" optional="YES" attributeType="String"/>
-        <attribute name="width" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="imageUrl" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="session" optional="YES" attributeType="String"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+        <relationship name="artists" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Artist" inverseName="album" inverseEntity="Artist"/>
+        <relationship name="tracks" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Track" inverseName="album" inverseEntity="Track"/>
     </entity>
-    <entity name="Playlist" representedClassName="PlaylistModel" syncable="YES" codeGenerationType="class">
+    <entity name="Artist" representedClassName="Artist" syncable="YES" codeGenerationType="class">
+        <attribute name="followers" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="image" optional="YES" attributeType="Binary"/>
+        <attribute name="imageUrl" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="session" optional="YES" attributeType="String"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+        <relationship name="album" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Album" inverseName="artists" inverseEntity="Album"/>
+        <relationship name="tracks" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Track" inverseName="artists" inverseEntity="Track"/>
+    </entity>
+    <entity name="Category" representedClassName="Category" syncable="YES" codeGenerationType="class">
+        <attribute name="icon" optional="YES" attributeType="Binary"/>
+        <attribute name="iconUrl" optional="YES" attributeType="String"/>
         <attribute name="id" optional="YES" attributeType="String"/>
         <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="playlists" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Playlist" inverseName="category" inverseEntity="Playlist"/>
     </entity>
-    <entity name="Track" representedClassName="TrackModel" syncable="YES" codeGenerationType="class">
+    <entity name="Playlist" representedClassName="Playlist" syncable="YES" codeGenerationType="class">
+        <attribute name="desc" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="image" optional="YES" attributeType="Binary"/>
+        <attribute name="imageUrl" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="session" optional="YES" attributeType="String"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+        <relationship name="category" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Category" inverseName="playlists" inverseEntity="Category"/>
+        <relationship name="tracks" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Track" inverseName="playlist" inverseEntity="Track"/>
+    </entity>
+    <entity name="Track" representedClassName="Track" syncable="YES" codeGenerationType="class">
         <attribute name="id" optional="YES" attributeType="String"/>
         <attribute name="music" optional="YES" attributeType="Binary"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="previewUrl" optional="YES" attributeType="String"/>
         <attribute name="type" optional="YES" attributeType="String"/>
+        <relationship name="album" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Album" inverseName="tracks" inverseEntity="Album"/>
+        <relationship name="artists" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Artist" inverseName="tracks" inverseEntity="Artist"/>
+        <relationship name="playlist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Playlist" inverseName="tracks" inverseEntity="Playlist"/>
     </entity>
     <elements>
-        <element name="Album" positionX="301.77734375" positionY="58.46484375" width="128" height="73"/>
-        <element name="Artist" positionX="193.48828125" positionY="257.34765625" width="128" height="73"/>
-        <element name="Image" positionX="573.890625" positionY="16.4140625" width="128" height="103"/>
-        <element name="Playlist" positionX="496.15234375" positionY="300.33984375" width="128" height="73"/>
-        <element name="Track" positionX="-26.3828125" positionY="109.40234375" width="128" height="118"/>
+        <element name="Album" positionX="-47.25" positionY="-142.1484375" width="128" height="163"/>
+        <element name="Artist" positionX="-309.8203125" positionY="95.1328125" width="128" height="178"/>
+        <element name="Category" positionX="413.10546875" positionY="85.234375" width="128" height="118"/>
+        <element name="Playlist" positionX="184.7109375" positionY="92.23046875" width="128" height="178"/>
+        <element name="Track" positionX="-30.2109375" positionY="311.97265625" width="128" height="163"/>
     </elements>
 </model>

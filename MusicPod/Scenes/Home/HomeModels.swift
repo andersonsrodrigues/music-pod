@@ -8,61 +8,149 @@
 
 import UIKit
 
-struct Entry {
-    var name: String
-    var cover: UIImage
-}
-
-enum Home {
-    struct DisplayedEntry {
+enum HomeModel {
+    
+    // MARK: - External Workers
+    
+    static var artistWorker = ArtistCoreDataWorker.shared
+    static var albumWorker = AlbumCoreDataWorker.shared
+    static var playlistWorker = PlaylistCoreDataWorker.shared
+    
+    // MARK: - Model
+    
+    struct DisplayedCell {
         var name: String
+        var image: Data?
+        var url: String?
+    }
+    
+    struct DisplayedEntry {
         var cover: UIImage
     }
     
+    // MARK: - CRUD operations
+    
     enum TopArtists {
-        struct Request {}
+        struct Request { }
         struct Response {
             var artists: [Artist]
+            var isError: Bool
+            var message: String?
         }
-        struct ViewModel
-        {
+        struct ViewModel {
             var artists: [Artist]
+            var isError: Bool
+            var message: String?
+        }
+    }
+    
+    enum FetchTopArtistAndConfigureCell {
+        struct Request {
+            var indexPath: IndexPath
+            var cell: HorizontalPlaylistCollectionViewCell?
+        }
+        struct Response {
+            var artist: Artist
+            var cell: HorizontalPlaylistCollectionViewCell?
+            var indexPath: IndexPath
+        }
+        struct ViewModel {
+            var displayedArtist: DisplayedCell
+            var cell: HorizontalPlaylistCollectionViewCell?
+            var indexPath: IndexPath
         }
     }
     
     enum NewRelease {
-        struct Request {}
+        struct Request { }
         struct Response {
-            var releases: [Album]
+            var albums: [Album]
+            var isError: Bool
+            var message: String?
         }
-        struct ViewModel
-        {
-            var releases: [Album]
+        struct ViewModel {
+            var albums: [Album]
+            var isError: Bool
+            var message: String?
+        }
+    }
+    
+    enum FetchNewReleaseAndConfigureCell {
+        struct Request {
+            var indexPath: IndexPath
+            var cell: HorizontalPlaylistCollectionViewCell?
+        }
+        struct Response {
+            var album: Album
+            var cell: HorizontalPlaylistCollectionViewCell?
+            var indexPath: IndexPath
+        }
+        struct ViewModel {
+            var displayedAlbum: DisplayedCell
+            var cell: HorizontalPlaylistCollectionViewCell?
+            var indexPath: IndexPath
         }
     }
     
     enum FeaturePlaylists {
-        struct Request {}
+        struct Request { }
         struct Response {
-            var playlists: [PlaylistSimplified]
+            var playlists: [Playlist]
+            var isError: Bool
+            var message: String?
         }
         struct ViewModel {
-            var playlists: [PlaylistSimplified]
+            var playlists: [Playlist]
+            var isError: Bool
+            var message: String?
         }
     }
     
-    enum SetCover {
+    enum FetchFeaturePlaylistsAndConfigureCell {
         struct Request {
-            var url: String
             var indexPath: IndexPath
+            var cell: HorizontalPlaylistCollectionViewCell?
         }
         struct Response {
-            var entry: Entry
+            var playlist: Playlist
+            var cell: HorizontalPlaylistCollectionViewCell?
             var indexPath: IndexPath
         }
         struct ViewModel {
-            var displayedEntry: DisplayedEntry
+            var displayedPlaylist: DisplayedCell
+            var cell: HorizontalPlaylistCollectionViewCell?
             var indexPath: IndexPath
         }
+    }
+    
+    enum CoverImage {
+        struct Request {
+            var url: String
+            var type: HomeSectionKeys
+            var indexPath: IndexPath
+            var cell: HorizontalPlaylistCollectionViewCell
+        }
+        struct Response {
+            var entry: Entry
+            var cell: HorizontalPlaylistCollectionViewCell
+        }
+        struct ViewModel {
+            var displayedEntry: DisplayedEntry
+            var cell: HorizontalPlaylistCollectionViewCell
+        }
+    }
+    
+    // MARK: - Home update lifecycle
+    
+    enum StartHomeUpdates {
+        struct Request { }
+        struct Response { }
+        struct ViewModel { }
+    }
+    
+    enum StopHomeUpdates {
+        struct Request { }
+        struct Response { }
+        struct ViewModel { }
     }
 }

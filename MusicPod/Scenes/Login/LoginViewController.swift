@@ -9,7 +9,7 @@
 import UIKit
 
 protocol LoginDisplayLogic: class {
-    func displayHome(viewModel: Login.Data.ViewModel)
+    func displayHome(viewModel: LoginModel.Data.ViewModel)
 }
 
 class LoginViewController: UIViewController, LoginDisplayLogic {
@@ -30,6 +30,10 @@ class LoginViewController: UIViewController, LoginDisplayLogic {
     
     // MARK: Setup
     
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        .lightContent
+    }
+    
     private func setup() {
         let viewController = self
         let interactor = LoginInteractor()
@@ -40,8 +44,6 @@ class LoginViewController: UIViewController, LoginDisplayLogic {
         interactor.presenter = presenter
         presenter.viewController = viewController
         router.viewController = viewController
-        
-        interactor.checkIfLogged()
     }
     
     // MARK: Routing
@@ -62,6 +64,12 @@ class LoginViewController: UIViewController, LoginDisplayLogic {
         setLoggginIn(false)
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        interactor?.checkIfLogged()
+    }
+    
     // MARK: Do something
     
     @IBOutlet weak var loginViaSpotifyButton: UIButton!
@@ -73,7 +81,7 @@ class LoginViewController: UIViewController, LoginDisplayLogic {
     }
     
     func requestLoginOnExternal() {
-        let request = Login.Data.Request()
+        let request = LoginModel.Data.Request()
         interactor?.requestLoginOnExternal(request: request)
     }
     
@@ -81,7 +89,7 @@ class LoginViewController: UIViewController, LoginDisplayLogic {
         interactor?.requestToken()
     }
     
-    func displayHome(viewModel: Login.Data.ViewModel) {
+    func displayHome(viewModel: LoginModel.Data.ViewModel) {
         if viewModel.success {
             performSegue(withIdentifier: "segueHome", sender: self)
         }

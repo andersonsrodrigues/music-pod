@@ -8,7 +8,7 @@
 
 import UIKit
 
-enum Login {
+enum LoginModel {
     // MARK: Use cases
     
     enum Data {

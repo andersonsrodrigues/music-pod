@@ -9,7 +9,7 @@
 import UIKit
 
 protocol LoginPresentationLogic {
-    func presentHomeView(response: Login.Data.Response)
+    func presentHomeView(response: LoginModel.Data.Response)
 }
 
 class LoginPresenter: LoginPresentationLogic {
@@ -17,8 +17,8 @@ class LoginPresenter: LoginPresentationLogic {
     
     // MARK: Do something
     
-    func presentHomeView(response: Login.Data.Response) {
-        let viewModel = Login.Data.ViewModel(success: response.success, error: response.error)
+    func presentHomeView(response: LoginModel.Data.Response) {
+        let viewModel = LoginModel.Data.ViewModel(success: response.success, error: response.error)
         viewController?.displayHome(viewModel: viewModel)
     }
 }

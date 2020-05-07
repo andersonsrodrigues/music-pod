@@ -8,17 +8,37 @@
 
 import UIKit
 
-let reuseHomeIdentifier = "reuseHomeCell"
+private let reuseHomeIdentifier = "reuseHomeCell"
+private let segueHomeToMusicView = "MusicView"
 
+// MARK: - Protocol
 protocol HomeDisplayLogic: class {
-    func displayTopArtists(viewModel: Home.TopArtists.ViewModel)
-    func displayNewRelease(viewModel: Home.NewRelease.ViewModel)
-    func displayFeaturedPlaylist(viewModel: Home.FeaturePlaylists.ViewModel)
+    // MARK: Display Data
+    func displayTopArtists(viewModel: HomeModel.TopArtists.ViewModel)
+    func displayNewRelease(viewModel: HomeModel.NewRelease.ViewModel)
+    func displayFeaturedPlaylist(viewModel: HomeModel.FeaturePlaylists.ViewModel)
+    func displayCoverImage(viewModel: HomeModel.CoverImage.ViewModel)
+
+    // MARK: Error Display
+    func displayErrorFetchTopArtists(viewModel: HomeModel.TopArtists.ViewModel)
+    func displayErrorFetchNewRelease(viewModel: HomeModel.NewRelease.ViewModel)
+    func displayErrorFetchFeaturedPlaylist(viewModel: HomeModel.FeaturePlaylists.ViewModel)
+    
+    // MARK: Home update lifecycle
+    func displayStartHomeUpdates(viewModel: HomeModel.StartHomeUpdates.ViewModel)
+    func displayStopHomeUpdates(viewModel: HomeModel.StopHomeUpdates.ViewModel)
+    
+    // MARK: CRUD operations
+    func displayFetchedArtistsAndConfigureCell(viewModel: HomeModel.FetchTopArtistAndConfigureCell.ViewModel)
+    func displayFetchedAlbumsAndConfigureCell(viewModel: HomeModel.FetchNewReleaseAndConfigureCell.ViewModel)
+    func displayFetchedPlaylistsAndConfigureCell(viewModel: HomeModel.FetchFeaturePlaylistsAndConfigureCell.ViewModel)
 }
 
 class HomeViewController: UITableViewController, HomeDisplayLogic {
     var interactor: HomeBusinessLogic?
     var router: (NSObjectProtocol & HomeRoutingLogic & HomeDataPassing)?
+    
+    var loadingView: LoadingView?
     
     // MARK: Object lifecycle
     
@@ -33,6 +53,10 @@ class HomeViewController: UITableViewController, HomeDisplayLogic {
     }
     
     // MARK: Setup
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        .lightContent
+    }
     
     private func setup() {
         let viewController = self
@@ -63,29 +87,28 @@ class HomeViewController: UITableViewController, HomeDisplayLogic {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        setupDarkMode()
-        fetchPlaylists()
+        navigationItem.title = "Recommendations"
+        
+        if #available(iOS 13.0, *) {
+            navigationController!.navigationBar.prefersLargeTitles = true
+        }
+        
+        setDarkMode(tableView: tableView)
+        loadingView = LoadingView(view: view)
     }
     
-    // MARK: Setup
-    
-    func setupDarkMode() {
-        view.backgroundColor = #colorLiteral(red: 0.145080179, green: 0.1451074183, blue: 0.1450739205, alpha: 1)
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         
-        navigationController!.navigationBar.barStyle = .black
-        navigationController!.navigationBar.isTranslucent = true
-        navigationController!.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.white]
-        navigationController!.navigationBar.tintColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
-        
-        tableView.backgroundColor = #colorLiteral(red: 0.145080179, green: 0.1451074183, blue: 0.1450739205, alpha: 1)
+        fetchMusics()
     }
     
     // MARK: - Table View
     
     var sections = [
-        ["key": "recommendation", "title": "Top Artists"],
-        ["key": "new", "title": "New songs added"],
-        ["key": "featured", "title": "Featured Playlists"]
+        ["key": HomeSectionKeys.recommendation.rawValue, "title": "Top Artists"],
+        ["key": HomeSectionKeys.new.rawValue, "title": "New songs added"],
+        ["key": HomeSectionKeys.featured.rawValue, "title": "Featured Playlists"]
     ]
     var storedOffsets = [Int: CGFloat]()
     
@@ -116,7 +139,7 @@ class HomeViewController: UITableViewController, HomeDisplayLogic {
         
         tableViewCell.backgroundColor = #colorLiteral(red: 0.145080179, green: 0.1451074183, blue: 0.1450739205, alpha: 1)
 
-        if currentSection == "recommendation" || currentSection == "new" {
+        if currentSection == HomeSectionKeys.recommendation.rawValue || currentSection == HomeSectionKeys.new.rawValue {
             tableViewCell.setCollectionViewDataSourceDelegate(self, forSection: indexPath.section, direction: .horizontal)
         } else {
             tableViewCell.setCollectionViewDataSourceDelegate(self, forSection: indexPath.section, direction: .vertical)
@@ -154,31 +177,81 @@ class HomeViewController: UITableViewController, HomeDisplayLogic {
         return 50.0
     }
     
-    // MARK: - Playlists
+    // MARK: - Fetch Musics
     
-    var topArtists = [Artist]()
-    var newRelease = [Album]()
-    var featurePlaylists = [PlaylistSimplified]()
-    
-    func fetchPlaylists() {
-        interactor?.requestLastPlaylists()
+    func fetchMusics() {
+        loadingView!.showActivityView()
+        interactor?.requestTopArtistisAndTracks()
         interactor?.requestNewRelease()
-        interactor?.requestNewRelease()
+        interactor?.requestFeaturePlaylists()
     }
     
-    func displayTopArtists(viewModel: Home.TopArtists.ViewModel) {
-        topArtists = viewModel.artists
+    func displayTopArtists(viewModel: HomeModel.TopArtists.ViewModel) {
         tableView.reloadData()
+        loadingView!.hideActivityView()
     }
     
-    func displayNewRelease(viewModel: Home.NewRelease.ViewModel) {
-        newRelease = viewModel.releases
+    func displayNewRelease(viewModel: HomeModel.NewRelease.ViewModel) {
         tableView.reloadData()
+        loadingView!.hideActivityView()
     }
     
-    func displayFeaturedPlaylist(viewModel: Home.FeaturePlaylists.ViewModel) {
-        featurePlaylists = viewModel.playlists
+    func displayFeaturedPlaylist(viewModel: HomeModel.FeaturePlaylists.ViewModel) {
         tableView.reloadData()
+        loadingView!.hideActivityView()
+    }
+    
+    func displayCoverImage(viewModel: HomeModel.CoverImage.ViewModel) {
+        let cell = viewModel.cell
+        cell.activityViewImage.stopAnimating()
+        cell.removeLoadingCover()
+        cell.coverImage.image = viewModel.displayedEntry.cover
+    }
+    
+    // MARK: Fetch Object
+    
+    func fetchArtistsAndConfigure(_ cell: HorizontalPlaylistCollectionViewCell, at indexPath: IndexPath) {
+        let request = HomeModel.FetchTopArtistAndConfigureCell.Request(indexPath: indexPath, cell: cell)
+        interactor?.fetchTopArtistAndConfigureCell(request: request)
+    }
+    
+    func fetchAlbumsAndConfigure(_ cell: HorizontalPlaylistCollectionViewCell, at indexPath: IndexPath) {
+        let request = HomeModel.FetchNewReleaseAndConfigureCell.Request(indexPath: indexPath, cell: cell)
+        interactor?.fetchNewReleaseAndConfigureCell(request: request)
+    }
+    
+    func fetchPlaylistsAndConfigure(_ cell: HorizontalPlaylistCollectionViewCell, at indexPath: IndexPath) {
+        let request = HomeModel.FetchFeaturePlaylistsAndConfigureCell.Request(indexPath: indexPath, cell: cell)
+        interactor?.fetchFeaturePlaylistAndConfigureCell(request: request)
+    }
+    
+    func displayFetchedArtistsAndConfigureCell(viewModel: HomeModel.FetchTopArtistAndConfigureCell.ViewModel) {
+        configureCell(viewModel.cell!, withDisplayedCell: viewModel.displayedArtist, as: .recommendation, at: viewModel.indexPath)
+    }
+    
+    func displayFetchedAlbumsAndConfigureCell(viewModel: HomeModel.FetchNewReleaseAndConfigureCell.ViewModel) {
+        configureCell(viewModel.cell!, withDisplayedCell: viewModel.displayedAlbum, as: .new, at: viewModel.indexPath)
+    }
+    
+    func displayFetchedPlaylistsAndConfigureCell(viewModel: HomeModel.FetchFeaturePlaylistsAndConfigureCell.ViewModel) {
+        configureCell(viewModel.cell!, withDisplayedCell: viewModel.displayedPlaylist, as: .featured, at: viewModel.indexPath)
+    }
+    
+    // MARK: Error Fetch Object
+    
+    func displayErrorFetchTopArtists(viewModel: HomeModel.TopArtists.ViewModel) {
+        showAlertFailure(title: "Error Top Artists", message: viewModel.message!)
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func displayErrorFetchNewRelease(viewModel: HomeModel.NewRelease.ViewModel) {
+        showAlertFailure(title: "Error New Release", message: viewModel.message!)
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func displayErrorFetchFeaturedPlaylist(viewModel: HomeModel.FeaturePlaylists.ViewModel) {
+        showAlertFailure(title: "Error Featured Playlists", message: viewModel.message!)
+        dismiss(animated: true, completion: nil)
     }
 }
 
@@ -187,14 +260,13 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         let currentSection = sections[collectionView.tag]["key"]
-        
         switch currentSection {
-        case "recommendation":
-            return topArtists.count
-        case "featured":
-            return featurePlaylists.count
-        case "new":
-            return newRelease.count
+        case HomeSectionKeys.recommendation.rawValue:
+            return interactor!.count(as: .recommendation)
+        case HomeSectionKeys.featured.rawValue:
+            return interactor!.count(as: .featured)
+        case HomeSectionKeys.new.rawValue:
+            return interactor!.count(as: .new)
         default:
             return 0
         }
@@ -203,67 +275,59 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseHorizontalPlaylistIdentifier, for: indexPath) as! HorizontalPlaylistCollectionViewCell
         let currentSection = sections[collectionView.tag]["key"]
-        
+
         if currentSection == "recommendation" {
-            cell.nameLabel.text = topArtists[indexPath.row].name
-            
-            if let image = topArtists[indexPath.row].images, let url = image.first?.url {
-                APIService.downloadPosterImage(path: url) { data, error in
-                    guard let data = data else {
-                        fatalError("There's no data to present")
-                        return
-                    }
-
-                    let image = UIImage(data: data)
-                    cell.coverImage.image = image
-                }
-            }
+            fetchArtistsAndConfigure(cell, at: indexPath)
         } else if currentSection == "featured" {
-            cell.nameLabel.text = featurePlaylists[indexPath.row].name
-            
-            if let image = featurePlaylists[indexPath.row].images, let url = image.first?.url {
-                APIService.downloadPosterImage(path: url) { data, error in
-                    guard let data = data else {
-                        fatalError("There's no data to present")
-                        return
-                    }
-
-                    let image = UIImage(data: data)
-                    cell.coverImage.image = image
-                }
-            }
+            fetchPlaylistsAndConfigure(cell, at: indexPath)
         } else if currentSection == "new" {
-            cell.nameLabel.text = newRelease[indexPath.row].name
-            
-            if let image = newRelease[indexPath.row].images, let url = image.first?.url {
-                APIService.downloadPosterImage(path: url) { data, error in
-                    guard let data = data else {
-                        fatalError("There's no data to present")
-                        return
-                    }
-
-                    let image = UIImage(data: data)
-                    cell.coverImage.image = image
-                }
-            }
+            fetchAlbumsAndConfigure(cell, at: indexPath)
         }
-        
-        cell.backgroundColor = #colorLiteral(red: 0.145080179, green: 0.1451074183, blue: 0.1450739205, alpha: 1)
 
         return cell
+    }
+    
+    func configureCell(_ cell: HorizontalPlaylistCollectionViewCell, withDisplayedCell displayedCell: HomeModel.DisplayedCell, as style: HomeSectionKeys, at indexPath: IndexPath) {
+        cell.addLoadingCover()
+        cell.nameLabel.text = displayedCell.name
+        
+        if let data = displayedCell.image {
+            let image = UIImage(data: data)
+            cell.coverImage.image = image
+            cell.removeLoadingCover()
+        } else if let url = displayedCell.url {
+            cell.activityViewImage.startAnimating()
+            
+            let request = HomeModel.CoverImage.Request(url: url, type: style, indexPath: indexPath, cell: cell)
+            interactor?.requestCoverImage(request: request)
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let currentSection = sections[collectionView.tag]["key"]
         
-        selectedRow = indexPath.row
-        
         if currentSection == "recommendation" {
-            performSegue(withIdentifier: segueFromHomeToArtist, sender: self)
+            interactor?.provideDataToMusicView(at: indexPath, as: .recommendation)
         } else if currentSection == "featured" {
-            performSegue(withIdentifier: segueFromHomeToPlaylist, sender: self)
+            interactor?.provideDataToMusicView(at: indexPath, as: .featured)
         } else if currentSection == "new" {
-            performSegue(withIdentifier: segueFromHomeToAlbum, sender: self)
+            interactor?.provideDataToMusicView(at: indexPath, as: .new)
         }
+        
+        performSegue(withIdentifier: segueHomeToMusicView, sender: self)
+    }
+}
+
+// MARK: - NSFetchedResultsController
+extension HomeViewController {
+    
+    // MARK: Home update lifecycle
+    
+    func displayStartHomeUpdates(viewModel: HomeModel.StartHomeUpdates.ViewModel) {
+        tableView.beginUpdates()
+    }
+    
+    func displayStopHomeUpdates(viewModel: HomeModel.StopHomeUpdates.ViewModel) {
+        tableView.endUpdates()
     }
 }

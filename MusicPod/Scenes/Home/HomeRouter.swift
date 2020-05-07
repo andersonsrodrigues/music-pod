@@ -8,49 +8,45 @@
 
 import UIKit
 
-@objc protocol HomeRoutingLogic
-{
-    //func routeToSomewhere(segue: UIStoryboardSegue?)
+@objc protocol HomeRoutingLogic {
+    func routeToMusicView(segue: UIStoryboardSegue?)
 }
 
-protocol HomeDataPassing
-{
+protocol HomeDataPassing {
     var dataStore: HomeDataStore? { get }
 }
 
-class HomeRouter: NSObject, HomeRoutingLogic, HomeDataPassing
-{
+class HomeRouter: NSObject, HomeRoutingLogic, HomeDataPassing {
     weak var viewController: HomeViewController?
     var dataStore: HomeDataStore?
     
     // MARK: Routing
     
-//    func routeToSomewhere(segue: UIStoryboardSegue?)
-//    {
-//        if let segue = segue {
-//            let destinationVC = segue.destination as! SomewhereViewController
-//            var destinationDS = destinationVC.router!.dataStore!
-//            passDataToSomewhere(source: dataStore!, destination: &destinationDS)
-//        } else {
-//            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-//            let destinationVC = storyboard.instantiateViewController(withIdentifier: "SomewhereViewController") as! SomewhereViewController
-//            var destinationDS = destinationVC.router!.dataStore!
-//            passDataToSomewhere(source: dataStore!, destination: &destinationDS)
-//            navigateToSomewhere(source: viewController!, destination: destinationVC)
-//        }
-//    }
+    func routeToMusicView(segue: UIStoryboardSegue?) {
+        if let segue = segue {
+            let destinationVC = segue.destination as! MusicTrackViewController
+            var destinationDS = destinationVC.router!.dataStore!
+            passDataToMusicView(source: dataStore!, destination: &destinationDS)
+        } else {
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            let destinationVC = storyboard.instantiateViewController(withIdentifier: "MusicTrackViewController") as! MusicTrackViewController
+            var destinationDS = destinationVC.router!.dataStore!
+            passDataToMusicView(source: dataStore!, destination: &destinationDS)
+            navigateToMusicView(source: viewController!, destination: destinationVC)
+        }
+    }
     
     // MARK: Navigation
     
-//    func navigateToSomewhere(source: HomeViewController, destination: SomewhereViewController)
-//    {
-//        source.show(destination, sender: nil)
-//    }
+    func navigateToMusicView(source: HomeViewController, destination: MusicTrackViewController) {
+        source.show(destination, sender: nil)
+    }
     
     // MARK: Passing data
     
-//    func passDataToSomewhere(source: HomeDataStore, destination: inout SomewhereDataStore)
-//    {
-//        destination.name = source.name
-//    }
+    func passDataToMusicView(source: HomeDataStore, destination: inout MusicTrackDataStore) {
+        destination.playlist = source.playlist
+        destination.album = source.album
+        destination.artist = source.artist
+    }
 }

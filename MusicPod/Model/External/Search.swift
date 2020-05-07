@@ -12,5 +12,5 @@ struct Search: Decodable {
     var id: String
     var name: String
     var type: String?
-    var images: [Image]?
+    var images: [ImageData]?
 }

@@ -9,6 +9,6 @@
 import Foundation
 
 struct PlayHistory: Decodable {
-    var track: Track?
+    var track: TrackData?
     var context: Context?
 }

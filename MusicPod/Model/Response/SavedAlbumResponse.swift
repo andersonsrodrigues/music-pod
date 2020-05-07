@@ -9,7 +9,7 @@
 import Foundation
 
 struct SavedAlbumResponse: Decodable {
-    var album: Album?
+    var album: AlbumData?
     
     enum CodingKeys: String, CodingKey {
         case album

@@ -9,5 +9,5 @@
 import Foundation
 
 struct PlaylistTrack: Decodable {
-    var track: Track?
+    var track: TrackData?
 }
